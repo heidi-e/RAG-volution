@@ -25,13 +25,16 @@ def search_embeddings(query, top_k=3):
     encode_query = encode_text(query)
 
     #Results will be stored:
-    query_results = stored_collection.query(query_embeddings=[query], n_results=top_k)
+    query_results = stored_collection.query(query_embeddings=[encode_query], n_results=top_k)
+
+    #Get documents
+    obtained_documents = query_results["documents"][0]
 
 
-    for i, pdf in enumerate(query_results["documents"][0]):
-        print(f'{i+1}. {pdf[:100]}')
+    for i, pdf in enumerate(obtained_documents):
+        print(f'{i+1}. {pdf}')
 
-    return query_results["documents"]
+    return obtained_documents
 
 
 
@@ -73,7 +76,28 @@ Answer:"""
 
 
 
+#Used to set up the conversation between user and AI
+def interactive_search():
+    print("🔍 RAG Search Interface")
+    print("Type 'exit' to quit")
+    while True:
+        query = input("\nEnter your search query: ")
+
+        #Exit case:
+        if query.lower() == 'exit':
+            break
+
+        #Otherwise, generate the RAG response:
+        # Search for relevant embeddings
+        context_results = search_embeddings(query)
+
+        # Generate RAG response
+        rag_response = generate_rag_response(query, context_results)
+
+        print("\n--- Response ---")
+        print(rag_response)
+
 
 
 if __name__ == "__main__":
-    search_embeddings("What is NoSQL?")
+    interactive_search()

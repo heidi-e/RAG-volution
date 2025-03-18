@@ -45,6 +45,7 @@ def pull_from_json(path):
                 store_embedding(i)
 
 
+
 #Get path to json data
 def main():
     path = "data/text_preprocessing_and_chunking/processed_json/ds4300_course_notes.json"
