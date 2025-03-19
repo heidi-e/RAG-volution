@@ -21,28 +21,46 @@ stored_collection = chroma_client.get_or_create_collection(name="ds4300_course_n
 
 
 #Going to obtain embeddings, create ids for them, and proceed to store them
-def store_embedding(info):
+def store_embedding(info, chunk_size):
     information = encode_text(info)
 
-    #Create an id and then add it to the stored collection:
+    #Create an id and then add it to the stored collection. Also handle duplicates:
     id_gen = str(hash(info))
-    stored_collection.add(documents=[info], embeddings=[information], ids=[id_gen])
+    current_docs = stored_collection.get(ids=[id_gen])
+    #Now apply check:
+    if current_docs and len(current_docs["documents"]) > 0:
+        print("Skipping already-made ids")
+        return 
+
+    #Store in the db
+    stored_collection.add(documents=[info], embeddings=[information], ids=[id_gen], metadatas=[{"chunk_size": chunk_size}])
     print(f'Values have been stored: {info[:50]}')
+    print(f'Stored values: (size {chunk_size}): {info[:50]}')
 
 
 #Pull from json database:
 def pull_from_json(path):
 
-    #Open and process the data
-    with open(path, "r", encoding="utf-8") as file:
-        data = json.load(file)
+    try: 
+
+        #Open and process the data
+        with open(path, "r", encoding="utf-8") as file:
+            data = json.load(file)
 
     
-    #Loop through the processed pdfs
-    for i in data["processed_pdfs"]: 
-        for chunk_size, chunked_material in i["chunked_content"].items():
-            for i in chunked_material:
-                store_embedding(i)
+        #Loop through the processed pdfs
+        for i in data["processed_pdfs"]: 
+            title = i.get("title", "Unknown Title")
+            print(f'Title processing: {title}')
+            for chunk_size, chunked_material in i.get("chunked_content", {}).items():
+                for j in chunked_material:
+                    store_embedding(j, chunk_size)
+
+        print("Embeddings were stored.")
+
+        #Add in exception when fails:
+    except Exception as e:
+        print(f'There was an error with the json file: {e}')
 
 
 

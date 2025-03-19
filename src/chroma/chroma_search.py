@@ -18,6 +18,9 @@ def encode_text(info):
 
     return embed_model.encode(info).tolist()
 
+
+
+
 #Begin searching the embeddings
 def search_embeddings(query, top_k=3):
 
@@ -27,12 +30,31 @@ def search_embeddings(query, top_k=3):
     #Results will be stored:
     query_results = stored_collection.query(query_embeddings=[encode_query], n_results=top_k)
 
-    #Get documents
+    #Answer to if there are no answers to the query:
+    if not query_results or "documents" not in query_results or not query_results["documents"]:
+        return []
+
+    #Get documents and necessary metadata (similar process as redis)
     obtained_documents = query_results["documents"][0]
+    obtained_meta = query_results.get("metadatas", [[]])
+
+
+    if isinstance(obtained_meta, list) and len(obtained_meta) > 0 and isinstance(obtained_meta[0], list):
+        obtained_meta = obtained_meta[0]
+
+
+    if not isinstance(obtained_meta, list) and len(obtained_meta) > 0 and isinstance(obtained_meta[0], list):
+        obtained_meta = [{} for _ in obtained_documents]
+
+   
+
+    print(f'Obtained meta: {obtained_meta} (type: {type(obtained_meta)})')
 
 
     for i, pdf in enumerate(obtained_documents):
-        print(f'{i+1}. {pdf}')
+        
+        chunk_size = obtained_meta[i].get("chunk_size", "Unknown Size") if i < len(obtained_meta) and isinstance(obtained_meta[i], dict) else "Unknown Size"
+        print(f'{i+1}. (Chunk Size: {chunk_size}) {pdf}')
 
     return obtained_documents
 
@@ -47,9 +69,7 @@ def generate_rag_response(query, context_results):
     # Prepare context string
     context_str = "\n".join(
         [
-            f"From {result.get('file', 'Unknown file')} (page {result.get('page', 'Unknown page')}, chunk {result.get('chunk', 'Unknown chunk')}) "
-            f"with similarity {float(result.get('similarity', 0)):.2f}"
-            for result in context_results
+            f"Chunk {i+1}: {query_result}" for i, query_result, in enumerate(context_results)
         ]
     )
 
