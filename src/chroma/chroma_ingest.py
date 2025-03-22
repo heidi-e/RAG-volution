@@ -1,6 +1,8 @@
 import chromadb
 import json
 from sentence_transformers import SentenceTransformer
+import time
+from memory_profiler import memory_usage
 
 
 #Decide on the model to use:
@@ -14,10 +16,21 @@ def encode_text(info):
 
 #Create the Chroma client; need PersistentClient and not Client because we do not want
 #data disappearing
-chroma_client = chromadb.PersistentClient(path="./chroma_db")
+def create_chroma_client(path="./chroma_db"):
+    client = chromadb.PersistentClient(path=path)
+    return client.get_or_create_collection(name="ds4300_course_notes")
+
+"""chroma_client = chromadb.PersistentClient(path="./chroma_db")
 
 #Create collection to index; pulling from existing preprocesed data
-stored_collection = chroma_client.get_or_create_collection(name="ds4300_course_notes")
+stored_collection = chroma_client.get_or_create_collection(name="ds4300_course_notes")"""
+
+def log_chroma_performance(start_time, memory_usage, end_time):
+    total_time = end_time - start_time
+    highest_memory_usage = max(memory_usage)
+
+    print(f" Total Execution Time: {total_time:.2f} seconds")
+    print(f"Peak Memory Usage: {highest_memory_usage:.2f} MB")
 
 
 #Going to obtain embeddings, create ids for them, and proceed to store them
@@ -37,6 +50,14 @@ def store_embedding(info, chunk_size):
     print(f'Values have been stored: {info[:50]}')
     print(f'Stored values: (size {chunk_size}): {info[:50]}')
 
+def process_docs(data):
+    for i in data["processed_pdfs"]:
+        title = i.get("title", "Unknown Title")
+        print(f'Title processing: {title}')
+        for chunk_size, chunked_material in i.get("chunked_content", {}).items():
+            for j in chunked_material:
+                store_embedding(j, chunk_size)
+
 
 #Pull from json database:
 def pull_from_json(path):
@@ -47,14 +68,19 @@ def pull_from_json(path):
         with open(path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
-    
+
         #Loop through the processed pdfs
-        for i in data["processed_pdfs"]: 
+        """for i in data["processed_pdfs"]: 
             title = i.get("title", "Unknown Title")
             print(f'Title processing: {title}')
             for chunk_size, chunked_material in i.get("chunked_content", {}).items():
                 for j in chunked_material:
-                    store_embedding(j, chunk_size)
+                    store_embedding(j, chunk_size)"""
+        
+        start_time = time.time()
+        memory_data = memory_usage((process_docs, (data,), {}), interval=0.1)
+        end_time = time.time()
+        log_chroma_performance(start_time, memory_data, end_time)
 
         print("Embeddings were stored.")
 

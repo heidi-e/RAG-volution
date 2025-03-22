@@ -19,8 +19,6 @@ def encode_text(info):
     return embed_model.encode(info).tolist()
 
 
-
-
 #Begin searching the embeddings
 def search_embeddings(query, top_k=3):
 
