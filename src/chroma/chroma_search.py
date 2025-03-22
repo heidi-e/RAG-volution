@@ -48,13 +48,13 @@ def search_embeddings(query, top_k=3):
 
    
 
-    print(f'Obtained meta: {obtained_meta} (type: {type(obtained_meta)})')
+    #print(f'Obtained meta: {obtained_meta} (type: {type(obtained_meta)})')
 
 
     for i, pdf in enumerate(obtained_documents):
         
         chunk_size = obtained_meta[i].get("chunk_size", "Unknown Size") if i < len(obtained_meta) and isinstance(obtained_meta[i], dict) else "Unknown Size"
-        print(f'{i+1}. (Chunk Size: {chunk_size}) {pdf}')
+        #print(f'{i+1}. (Chunk Size: {chunk_size}) {pdf}')
 
     return obtained_documents
 
@@ -73,7 +73,7 @@ def generate_rag_response(query, context_results):
         ]
     )
 
-    print(f"context_str: {context_str}")
+    #print(f"context_str: {context_str}")
 
     # Construct prompt with context
     prompt = f"""You are a helpful AI assistant. 
