@@ -9,7 +9,8 @@ from redis.commands.search.field import VectorField, TextField
 
 # Initialize models
 # embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
-redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
+#redis_client = redis.StrictRedis(host="localhost", port=6380, decode_responses=True)
+redis_client = redis.StrictRedis(host="localhost", port=6379, decode_responses=True)
 
 VECTOR_DIM = 768
 INDEX_NAME = "embedding_index"
@@ -23,7 +24,7 @@ DISTANCE_METRIC = "COSINE"
 
 def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
-    response = ollama.embeddings(model=model, prompt=text)
+    response = ollama.embeddings(model="llama3.2", prompt=text)
     return response["embedding"]
 
 
