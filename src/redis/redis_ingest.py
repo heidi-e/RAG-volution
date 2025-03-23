@@ -8,7 +8,6 @@ import os
 import fitz
 
 # Initialize Redis connection
-#redis_client = redis.Redis(host="localhost", port=6380, db=0)
 redis_client = redis.Redis(host="localhost", port=6379, db=0)
 
 
@@ -132,7 +131,7 @@ def main():
     clear_redis_store()
     create_hnsw_index()
 
-    process_pdfs('/Users/Heidi/Downloads/Practical_2/DS4300_Practical_2_LLM_Analysis/data/text_preprocessing_and_chunking/unprocessed_pdfs')
+    process_pdfs('data/unprocessed_pdfs')
     print("\n---Done processing PDFs---\n")
     query_redis("What is the capital of France?")
 
