@@ -36,6 +36,7 @@ def log_chroma_performance(start_time, memory_usage, end_time):
 #Going to obtain embeddings, create ids for them, and proceed to store them
 def store_embedding(info, chunk_size):
     information = encode_text(info)
+    stored_collection = create_chroma_client()
 
     #Create an id and then add it to the stored collection. Also handle duplicates:
     id_gen = str(hash(info))

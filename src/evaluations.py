@@ -11,7 +11,7 @@ def results(data):
 
 def run_experiment(embedding_model_name, vector_db_name, llm_name, documents):
     embedding_model = SentenceTransformer(embedding_model_name)
-    
+
 
 def main():
     with open("data/text_preprocessing_and_chunking/processed_json/ds4300_course_notes.json", "r", encoding="utf-8") as file:
