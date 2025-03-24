@@ -10,8 +10,8 @@ nltk.download("stopwords")
 stop_words = set(stopwords.words("english"))
 
 # folder paths
-pdf_folder = "data/text_preprocessing_and_chunking/unprocessed_pdfs"
-output_json_path = "data/text_preprocessing_and_chunking/processed_json/ds4300_course_notes.json"
+pdf_folder = "data/unprocessed_pdfs"
+output_json_path = "data/processed_json/ds4300_course_notes.json"
 
 # pdf -> json
 final_json_output = {"processed_pdfs": []}
