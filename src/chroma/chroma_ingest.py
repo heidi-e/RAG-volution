@@ -93,7 +93,7 @@ def pull_from_json(path):
 
 #Get path to json data
 def main():
-    path = "data/text_preprocessing_and_chunking/processed_json/ds4300_course_notes.json"
+    path = "data/processed_json/ds4300_course_notes.json"
     pull_from_json(path)
 
 if __name__ == "__main__":
