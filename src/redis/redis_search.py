@@ -1,6 +1,7 @@
 import redis
 import json
 import numpy as np
+import time
 #from sentence_transformers import SentenceTransformer
 import ollama
 from redis.commands.search.query import Query
@@ -29,7 +30,7 @@ def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
 
 def search_embeddings(query, top_k=3):
-
+    start_time = time.time() 
     query_embedding = get_embedding(query)
 
     # Convert embedding to bytes for Redis search
@@ -68,6 +69,9 @@ def search_embeddings(query, top_k=3):
             print(
                 f"---> File: {result['file']}, Page: {result['page']}, Chunk: {result['chunk']}"
             )
+        
+        end_time = time.time()  # End timing
+        print(f"🔹 Embedding search time: {end_time - start_time:.4f} seconds")
 
         return top_results
 
@@ -77,7 +81,7 @@ def search_embeddings(query, top_k=3):
 
 
 def generate_rag_response(query, context_results):
-
+    start_time = time.time() 
     # Prepare context string
     context_str = "\n".join(
         [
@@ -105,6 +109,9 @@ Answer:"""
     response = ollama.chat(
         model="llama3.2:latest", messages=[{"role": "user", "content": prompt}]
     )
+
+    end_time = time.time()  # End timing
+    print(f"🔹 Response generation time: {end_time - start_time:.4f} seconds")
 
     return response["message"]["content"]
 
