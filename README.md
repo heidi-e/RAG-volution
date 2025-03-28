@@ -34,6 +34,21 @@ RAG-volution is a Retrieval-Augmented Generation (RAG) system that allows users 
   - **"Write a MongoDB query to return thriller movies from 2005-2012."**  
   - **"What is the difference between a B+ tree and an AVL tree?"**  
 
+  ## Setup Instructions  
+
+### Install Docker  
+To run the Redis server and other dependencies, you must install Docker:  
+
+- [Download Docker](https://www.docker.com/get-started) and install it based on your operating system.  
+
+### Run Redis in Docker  
+1. Pull the Redis Docker image
+2. Start a Redis container and expose it on port 6379
+
+### Run Qdrant in Docker
+1. Pull the Qdrant Docker image
+2. Start a Qdrant container and expose it on port 6333
+
 ## How to Run  
 1. Clone the repository:  
    ```bash
