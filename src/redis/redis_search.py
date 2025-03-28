@@ -80,7 +80,7 @@ def search_embeddings(query, top_k=3):
         return []
 
 
-def generate_rag_response(query, context_results):
+def generate_rag_response(query, context_results, llm_choice):
     start_time = time.time() 
     # Prepare context string
     context_str = "\n".join(
@@ -105,10 +105,17 @@ Query: {query}
 
 Answer:"""
 
-    # Generate response using Ollama
-    response = ollama.chat(
-        model="llama3.2:latest", messages=[{"role": "user", "content": prompt}]
-    )
+    if llm_choice == 1:
+        # Generate response using Ollama
+        response = ollama.chat(
+            model="llama3.2:latest", messages=[{"role": "user", "content": prompt}]
+        )
+    
+    elif llm_choice == 2:
+        # Generate response using Mistral
+        response = ollama.chat(
+            model="mistral", messages=[{"role": "user", "content": prompt}]
+        )
 
     end_time = time.time()  # End timing
     print(f"🔹 Response generation time: {end_time - start_time:.4f} seconds")
@@ -116,7 +123,7 @@ Answer:"""
     return response["message"]["content"]
 
 
-def interactive_search():
+def interactive_search(llm_choice):
     """Interactive search interface."""
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
@@ -131,7 +138,7 @@ def interactive_search():
         context_results = search_embeddings(query)
 
         # Generate RAG response
-        response = generate_rag_response(query, context_results)
+        response = generate_rag_response(query, context_results, llm_choice)
 
         print("\n--- Response ---")
         print(response)
@@ -158,6 +165,12 @@ def interactive_search():
 #         },
 #     )
 
+def main():
+    llm_choice = int(input("\n* 1 for Ollama\n* 2 for Mistral"
+    "\nEnter the LLM model choice: "))
+
+    interactive_search(llm_choice)
+
 
 if __name__ == "__main__":
-    interactive_search()
+    main()
