@@ -34,12 +34,6 @@ RAG-volution is a Retrieval-Augmented Generation (RAG) system that allows users 
   - **"Write a MongoDB query to return thriller movies from 2005-2012."**  
   - **"What is the difference between a B+ tree and an AVL tree?"**  
 
-## Recommendations  
-Based on our results, we recommend an optimized pipeline using:  
-- **ChromaDB** for efficient indexing and retrieval.  
-- **sentence-transformers/all-mpnet-base-v2** for balanced speed and accuracy.  
-- **Mistral LLM** for complex queries requiring deep contextual understanding.  
-
 ## How to Run  
 1. Clone the repository:  
    ```bash
