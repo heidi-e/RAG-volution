@@ -6,6 +6,7 @@ import numpy as np
 from redis.commands.search.query import Query
 import os
 import fitz
+from src.embedding_model import get_embedding
 
 # Initialize Redis connection
 redis_client = redis.Redis(host="localhost", port=6379, db=0)
@@ -42,10 +43,13 @@ def create_hnsw_index():
 
 
 # Generate an embedding using nomic-embed-text
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+"""def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
     response = ollama.embeddings(model="llama3.2", prompt=text)
-    return response["embedding"]
+    return response["embedding"]"""
+
+def encode_text(info, model_choice):
+    return get_embedding(info, model_choice)
 
 
 # store the embedding in Redis
@@ -87,7 +91,7 @@ def split_text_into_chunks(text, chunk_size=300, overlap=50):
 
 
 # Process all PDF files in a given directory
-def process_pdfs(data_dir):
+def process_pdfs(data_dir, model_choice):
 
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".pdf"):
@@ -98,7 +102,7 @@ def process_pdfs(data_dir):
                 # print(f"  Chunks: {chunks}")
                 for chunk_index, chunk in enumerate(chunks):
                     # embedding = calculate_embedding(chunk)
-                    embedding = get_embedding(chunk)
+                    embedding = get_embedding(chunk, model_choice)
                     store_embedding(
                         file=file_name,
                         page=str(page_num),
@@ -109,7 +113,7 @@ def process_pdfs(data_dir):
             print(f" -----> Processed {file_name}")
 
 
-def query_redis(query_text: str):
+def query_redis(query_text: str, model_choice):
     q = (
         Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
         .sort_by("vector_distance")
@@ -117,7 +121,7 @@ def query_redis(query_text: str):
         .dialect(2)
     )
     query_text = "Efficient search in vector databases"
-    embedding = get_embedding(query_text)
+    embedding = get_embedding(query_text, model_choice)
     res = redis_client.ft(INDEX_NAME).search(
         q, query_params={"vec": np.array(embedding, dtype=np.float32).tobytes()}
     )
@@ -128,12 +132,27 @@ def query_redis(query_text: str):
 
 
 def main():
+
     clear_redis_store()
     create_hnsw_index()
 
-    process_pdfs('data/unprocessed_pdfs')
+    model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
+    "\nEnter the embedding model choice:"))
+    
+    if model_choice == 1:
+        print("Using SentenceTransformer for embeddings.")
+        VECTOR_DIM = 384
+    elif model_choice == 2:
+        print("Using SentenceTransformer for embeddings.")
+        VECTOR_DIM = 768
+    elif model_choice == 3:
+        print("Using Ollama for embeddings.")
+        VECTOR_DIM = 3072
+
+    path = 'data/unprocessed_pdfs'
+    process_pdfs(path, model_choice)
     print("\n---Done processing PDFs---\n")
-    query_redis("What is the capital of France?")
+    #query_redis("What is the capital of France?")
 
 
 if __name__ == "__main__":

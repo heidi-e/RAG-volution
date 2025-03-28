@@ -9,7 +9,8 @@ import uuid
 import time
 from memory_profiler import memory_usage
 
-import select_embedding_model  # Import the shared module
+#import select_embedding_model  # Import the shared module
+from src.embedding_model import get_embedding
 
 # Qdrant Client Setup
 qdrant_client = QdrantClient("localhost", port=6333)  # Adjust as per your setup
@@ -95,7 +96,7 @@ def process_pdfs(data_dir, model_choice):
             for page_num, text in text_by_page:
                 chunks = split_text_into_chunks(text)
                 for chunk_index, chunk in enumerate(chunks):
-                    embedding = select_embedding_model.get_embedding(chunk, model_choice)
+                    embedding = get_embedding(chunk, model_choice)
                     store_embedding(
                         file=file_name,
                         page=str(page_num),

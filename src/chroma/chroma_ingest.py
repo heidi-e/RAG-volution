@@ -3,6 +3,7 @@ import json
 from sentence_transformers import SentenceTransformer
 import time
 from memory_profiler import memory_usage
+from src.embedding_model import get_embedding
 
 
 #Decide on the model to use:
@@ -10,9 +11,9 @@ embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
 #Create an embedding for a query:
-def encode_text(info):
+def encode_text(info, model_choice):
 
-    return embedding_model.encode(info).tolist()
+    return get_embedding(info, model_choice)
 
 #Create the Chroma client; need PersistentClient and not Client because we do not want
 #data disappearing
@@ -34,8 +35,8 @@ def log_chroma_performance(start_time, memory_usage, end_time):
 
 
 #Going to obtain embeddings, create ids for them, and proceed to store them
-def store_embedding(info, chunk_size):
-    information = encode_text(info)
+def store_embedding(info, chunk_size, model_choice):
+    information = encode_text(info, model_choice)
     stored_collection = create_chroma_client()
 
     #Create an id and then add it to the stored collection. Also handle duplicates:
@@ -51,17 +52,17 @@ def store_embedding(info, chunk_size):
     print(f'Values have been stored: {info[:50]}')
     print(f'Stored values: (size {chunk_size}): {info[:50]}')
 
-def process_docs(data):
+def process_docs(data, model_choice):
     for i in data["processed_pdfs"]:
         title = i.get("title", "Unknown Title")
         print(f'Title processing: {title}')
         for chunk_size, chunked_material in i.get("chunked_content", {}).items():
             for j in chunked_material:
-                store_embedding(j, chunk_size)
+                store_embedding(j, chunk_size, model_choice)
 
 
 #Pull from json database:
-def pull_from_json(path):
+def pull_from_json(path, model_choice):
 
     try: 
 
@@ -79,7 +80,7 @@ def pull_from_json(path):
                     store_embedding(j, chunk_size)"""
         
         start_time = time.time()
-        memory_data = memory_usage((process_docs, (data,), {}), interval=0.1)
+        memory_data = memory_usage((process_docs, (data, model_choice), {}), interval=0.1)
         end_time = time.time()
         log_chroma_performance(start_time, memory_data, end_time)
 
@@ -93,8 +94,21 @@ def pull_from_json(path):
 
 #Get path to json data
 def main():
+    model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
+    "\nEnter the embedding model choice:"))
+    
+    if model_choice == 1:
+        print("Using SentenceTransformer for embeddings.")
+        VECTOR_DIM = 384
+    elif model_choice == 2:
+        print("Using SentenceTransformer for embeddings.")
+        VECTOR_DIM = 768
+    elif model_choice == 3:
+        print("Using Ollama for embeddings.")
+        VECTOR_DIM = 3072
+
     path = "data/processed_json/ds4300_course_notes.json"
-    pull_from_json(path)
+    pull_from_json(path, model_choice)
 
 if __name__ == "__main__":
     main()
