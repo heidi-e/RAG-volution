@@ -57,9 +57,10 @@ To run the Redis server and other dependencies, you must install Docker:
 2. Run ingest file to create database:
   ```bash
   python3 -m src.{db_folder_name}.{db_name}_ingest
+  ```
 
 3. Run search file to generate RAG response:
   ```bash
   python3 src/{db_folder_name}/{db_name}_search.py
-
+  ```
 
