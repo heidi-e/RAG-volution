@@ -55,9 +55,9 @@ To run the Redis server and other dependencies, you must install Docker:
    git clone https://github.com/Mihalis-Koutouvos/DS4300_Practical_2_LLM_Analysis.git
 
 2. Run ingest file to create database:
-```python3 -m src.{db_folder_name}.{db_name}_ingest```
+```python3 -m src.{db_folder_name}.{db_name}_ingest
 
 3. Run search file to generate RAG response:
-```python3 src/{db_folder_name}/{db_name}_search.py```
+```python3 src/{db_folder_name}/{db_name}_search.py
 
 
