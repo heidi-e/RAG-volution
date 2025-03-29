@@ -7,7 +7,7 @@ from src.embedding_model import get_embedding
 
 
 #Decide on the model to use:
-embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+#embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
 
 #Create an embedding for a query:
@@ -19,6 +19,11 @@ def encode_text(info, model_choice):
 #data disappearing
 def create_chroma_client(path="./chroma_db"):
     client = chromadb.PersistentClient(path=path)
+    try:
+        client.delete_collection(name="ds4300_course_notes")
+    except:
+        pass
+
     return client.get_or_create_collection(name="ds4300_course_notes")
 
 """chroma_client = chromadb.PersistentClient(path="./chroma_db")
@@ -99,13 +104,13 @@ def main():
     
     if model_choice == 1:
         print("Using SentenceTransformer for embeddings.")
-        VECTOR_DIM = 384
+
     elif model_choice == 2:
         print("Using SentenceTransformer for embeddings.")
-        VECTOR_DIM = 768
+
     elif model_choice == 3:
         print("Using Ollama for embeddings.")
-        VECTOR_DIM = 3072
+
 
     path = "data/processed_json/ds4300_course_notes.json"
     pull_from_json(path, model_choice)

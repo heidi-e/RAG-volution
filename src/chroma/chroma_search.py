@@ -1,6 +1,7 @@
 import chromadb
 from sentence_transformers import SentenceTransformer
 import ollama
+from src.embedding_model import get_embedding
 
 #Use a specified model:
 embed_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
@@ -14,16 +15,17 @@ stored_collection = chroma_client.get_or_create_collection(name="ds4300_course_n
 
 
 #Create an embedding for a query:
-def encode_text(info):
+def encode_text(info, model_choice):
+    response = get_embedding(info, model_choice)
 
-    return embed_model.encode(info).tolist()
+    return response
 
 
 #Begin searching the embeddings
-def search_embeddings(query, top_k=3):
+def search_embeddings(query, model_choice, top_k=3):
 
     #Encode
-    encode_query = encode_text(query)
+    encode_query = encode_text(query, model_choice)
 
     #Results will be stored:
     query_results = stored_collection.query(query_embeddings=[encode_query], n_results=top_k)
@@ -104,7 +106,7 @@ Answer:"""
 
 
 #Used to set up the conversation between user and AI
-def interactive_search(llm_choice):
+def interactive_search(model_choice, llm_choice):
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
     while True:
@@ -116,7 +118,7 @@ def interactive_search(llm_choice):
 
         #Otherwise, generate the RAG response:
         # Search for relevant embeddings
-        context_results = search_embeddings(query)
+        context_results = search_embeddings(query, model_choice)
 
         # Generate RAG response
         rag_response = generate_rag_response(query, context_results, llm_choice)
@@ -125,10 +127,13 @@ def interactive_search(llm_choice):
         print(rag_response)
 
 def main():
+    model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
+    "\nEnter the embedding model choice (make sure its consistent with ingest.py): "))
+
     llm_choice = int(input("\n* 1 for Ollama\n* 2 for Mistral"
     "\nEnter the LLM model choice: "))
 
-    interactive_search(llm_choice)
+    interactive_search(model_choice, llm_choice)
 
 if __name__ == "__main__":
     main()

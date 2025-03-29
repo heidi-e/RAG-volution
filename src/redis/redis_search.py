@@ -6,6 +6,7 @@ import time
 import ollama
 from redis.commands.search.query import Query
 from redis.commands.search.field import VectorField, TextField
+from src.embedding_model import get_embedding
 
 
 # Initialize models
@@ -23,16 +24,19 @@ DISTANCE_METRIC = "COSINE"
 #     return np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
 
 
-def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
+"""def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
 
     response = ollama.embeddings(model="llama3.2", prompt=text)
-    return response["embedding"]
+    return response["embedding"]"""
+
+def find_embedding(text, model):
+    response = get_embedding(text, model)
+    return response
 
 
-def search_embeddings(query, top_k=3):
+def search_embeddings(query, model_choice, top_k=3):
     start_time = time.time() 
-    query_embedding = get_embedding(query)
-
+    query_embedding = find_embedding(query, model_choice)
     # Convert embedding to bytes for Redis search
     query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
@@ -123,7 +127,7 @@ Answer:"""
     return response["message"]["content"]
 
 
-def interactive_search(llm_choice):
+def interactive_search(model_choice, llm_choice):
     """Interactive search interface."""
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
@@ -135,7 +139,7 @@ def interactive_search(llm_choice):
             break
 
         # Search for relevant embeddings
-        context_results = search_embeddings(query)
+        context_results = search_embeddings(query, model_choice)
 
         # Generate RAG response
         response = generate_rag_response(query, context_results, llm_choice)
@@ -166,10 +170,12 @@ def interactive_search(llm_choice):
 #     )
 
 def main():
+    model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
+    "\nEnter the embedding model choice (make sure its consistent with ingest.py): "))
     llm_choice = int(input("\n* 1 for Ollama\n* 2 for Mistral"
     "\nEnter the LLM model choice: "))
 
-    interactive_search(llm_choice)
+    interactive_search(model_choice, llm_choice)
 
 
 if __name__ == "__main__":
