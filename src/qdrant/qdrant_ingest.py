@@ -8,9 +8,8 @@ import ollama
 import uuid
 import time
 from memory_profiler import memory_usage
-
-#import select_embedding_model  # Import the shared module
 from src.embedding_model import get_embedding
+
 
 # Qdrant Client Setup
 qdrant_client = QdrantClient("localhost", port=6333)  # Adjust as per your setup

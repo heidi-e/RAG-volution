@@ -6,9 +6,7 @@ from qdrant_client.models import VectorParams, Distance, PointStruct
 import uuid
 import time
 from sentence_transformers import SentenceTransformer
-
-import select_embedding_model
-
+from src.embedding_model import get_embedding
 import warnings
 
 
@@ -27,7 +25,7 @@ COLLECTION_NAME = "pdf_embeddings"
 
 # Function to search embeddings in Qdrant
 def search_embeddings(query, model_choice, top_k=3):
-    query_embedding = select_embedding_model.get_embedding(query, model_choice)
+    query_embedding = get_embedding(query, model_choice)
 
     # Perform the search in Qdrant
     search_result = qdrant_client.search(
