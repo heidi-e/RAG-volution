@@ -1,6 +1,7 @@
 import chromadb
 from sentence_transformers import SentenceTransformer
 import ollama
+import time
 from src.embedding_model import get_embedding
 
 #Use a specified model:
@@ -23,6 +24,7 @@ def encode_text(info, model_choice):
 
 #Begin searching the embeddings
 def search_embeddings(query, model_choice, top_k=3):
+    start_time = time.time() 
 
     #Encode
     encode_query = encode_text(query, model_choice)
@@ -56,6 +58,10 @@ def search_embeddings(query, model_choice, top_k=3):
         chunk_size = obtained_meta[i].get("chunk_size", "Unknown Size") if i < len(obtained_meta) and isinstance(obtained_meta[i], dict) else "Unknown Size"
         #print(f'{i+1}. (Chunk Size: {chunk_size}) {pdf}')
 
+
+    end_time = time.time()  # End timing
+    print(f"🔹 Embedding search time: {end_time - start_time:.4f} seconds")
+
     return obtained_documents
 
 
@@ -65,7 +71,7 @@ def search_embeddings(query, model_choice, top_k=3):
 
 
 def generate_rag_response(query, context_results, llm_choice):
-
+    start_time = time.time() 
     # Prepare context string
     context_str = "\n".join(
         [
@@ -100,7 +106,9 @@ Answer:"""
             model="mistral", messages=[{"role": "user", "content": prompt}]
         )
 
-    
+    end_time = time.time()
+    print(f"🔹 Response generation time: {end_time - start_time:.4f} seconds")
+
     return response["message"]["content"]
 
 
