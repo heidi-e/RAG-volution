@@ -118,7 +118,7 @@ Answer:"""
 
 
 #Used to set up the conversation between user and AI
-def interactive_search(model_choice, llm_choice):
+def interactive_search(model_choice, llm_choice, chunk_size, overlap):
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
     while True:
@@ -131,9 +131,7 @@ def interactive_search(model_choice, llm_choice):
         #Otherwise, generate the RAG response:
         # Search for relevant embeddings
 
-        # Determine chunk size and overlap
-        chunk_size = int(input("\n* Chunk size:"))
-        overlap = int(input("\n* Overlap:"))
+        
         context_results = search_embeddings(query, model_choice, chunk_size, overlap)
 
         # Generate RAG response
@@ -149,7 +147,11 @@ def main():
     llm_choice = int(input("\n* 1 for Ollama\n* 2 for Mistral"
     "\nEnter the LLM model choice: "))
 
-    interactive_search(model_choice, llm_choice)
+    # Determine chunk size and overlap
+    chunk_size = int(input("\n* Chunk size:"))
+    overlap = int(input("\n* Overlap:"))
+
+    interactive_search(model_choice, llm_choice, chunk_size, overlap)
 
 if __name__ == "__main__":
     main()
