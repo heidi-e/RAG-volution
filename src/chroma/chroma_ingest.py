@@ -57,15 +57,27 @@ def store_embedding(info, chunk_size, model_choice):
     print(f'Values have been stored: {info[:50]}')
     print(f'Stored values: (size {chunk_size}): {info[:50]}')
 
-def process_docs(data, model_choice):
+def process_docs(data, model_choice, target_chunk_size, target_overlap):
     for i in data["processed_pdfs"]:
         title = i.get("title", "Unknown Title")
         print(f'Title processing: {title}')
-        for chunk_size, chunked_material in i.get("chunked_content", {}).items():
-            for j in chunked_material:
-                store_embedding(j, chunk_size, model_choice)
+        for key, chunked_material in i.get("chunked_content", {}).items():
+            
+            # Example key format: "200_words_overlap_50"
+            try:
+                parts = key.split("_")
+                chunk_size = int(parts[0])
+                overlap = int(parts[-1])
+                # Filter based on inputs
+                if (target_chunk_size == chunk_size and target_overlap == overlap):
+                    for j in chunked_material:
+                        store_embedding(j, chunk_size, model_choice)
 
+            except Exception as e:
+                continue
+            
 
+            
 #Pull from json database:
 def pull_from_json(path, model_choice):
 
@@ -76,16 +88,12 @@ def pull_from_json(path, model_choice):
             data = json.load(file)
 
 
-        #Loop through the processed pdfs
-        """for i in data["processed_pdfs"]: 
-            title = i.get("title", "Unknown Title")
-            print(f'Title processing: {title}')
-            for chunk_size, chunked_material in i.get("chunked_content", {}).items():
-                for j in chunked_material:
-                    store_embedding(j, chunk_size)"""
-        
+        # Determine chunk size and overlap
+        chunk_size = int(input("\n* Chunk size:"))
+        overlap = int(input("\n* Overlap:"))
+
         start_time = time.time()
-        memory_data = memory_usage((process_docs, (data, model_choice), {}), interval=0.1)
+        memory_data = memory_usage((process_docs, (data, model_choice, chunk_size, overlap), {}), interval=0.1)
         end_time = time.time()
         log_chroma_performance(start_time, memory_data, end_time)
 
