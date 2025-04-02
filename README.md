@@ -63,4 +63,8 @@ To run the Redis server and other dependencies, you must install Docker:
   ```bash
   python3 -m src.{db_folder_name}.{db_name}_search
   ```
+4. To run the last embedding model ('mxbai-embed-large'), make sure to pull model with Ollama.
+```bash
+ollama pull mxbai-embed-large
+```
 

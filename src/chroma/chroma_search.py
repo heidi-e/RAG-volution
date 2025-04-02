@@ -4,9 +4,6 @@ import ollama
 import time
 from src.embedding_model import get_embedding
 
-#Use a specified model:
-#embed_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-
 #Create the Chroma client; need PersistentClient and not Client because we do not want
 #data disappearing
 chroma_client = chromadb.PersistentClient(path="./chroma_db")
@@ -133,7 +130,7 @@ def interactive_search(model_choice, llm_choice):
 
         #Otherwise, generate the RAG response:
         # Search for relevant embeddings
-        
+
         # Determine chunk size and overlap
         chunk_size = int(input("\n* Chunk size:"))
         overlap = int(input("\n* Overlap:"))
