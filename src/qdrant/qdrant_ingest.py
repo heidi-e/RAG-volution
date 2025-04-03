@@ -76,7 +76,7 @@ def extract_text_from_pdf(pdf_path):
     return text_by_page
 
 # Split text into chunks with overlap
-def split_text_into_chunks(text, chunk_size=200, overlap=0):
+def split_text_into_chunks(text, chunk_size, overlap):
     """Split text into chunks of approximately chunk_size words with overlap."""
     words = text.split()
     chunks = []
@@ -86,14 +86,14 @@ def split_text_into_chunks(text, chunk_size=200, overlap=0):
     return chunks
 
 # Process all PDF files in a given directory
-def process_pdfs(data_dir, model_choice):
+def process_pdfs(data_dir, model_choice, chunk_size, overlap):
     count = 0
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".pdf"):
             pdf_path = os.path.join(data_dir, file_name)
             text_by_page = extract_text_from_pdf(pdf_path)
             for page_num, text in text_by_page:
-                chunks = split_text_into_chunks(text)
+                chunks = split_text_into_chunks(text, chunk_size, overlap)
                 for chunk_index, chunk in enumerate(chunks):
                     embedding = get_embedding(chunk, model_choice)
                     store_embedding(
@@ -119,14 +119,18 @@ def main():
         VECTOR_DIM = 768
     elif model_choice == 3:
         print("Using Ollama for embeddings.")
-        VECTOR_DIM = 3072
+        VECTOR_DIM = 1024
+
+    # Determine chunk size and overlap
+    chunk_size = int(input("\n* Chunk size:"))
+    overlap = int(input("\n* Overlap:"))
 
     # create qdrant db
     create_qdrant_collection(VECTOR_DIM)
 
     # process documents and collect metrics
     start_time = time.time()
-    memory_data = memory_usage((process_pdfs, ('data/unprocessed_pdfs', model_choice,), {}), interval=0.1)
+    memory_data = memory_usage((process_pdfs, ('data/unprocessed_pdfs', model_choice, chunk_size, overlap), {}), interval=0.1)
     end_time = time.time()
     log_qdrant_performance(start_time, memory_data, end_time)
     
