@@ -53,6 +53,7 @@ To run the Redis server and other dependencies, you must install Docker:
 1. Clone the repository:  
   ```bash
   git clone https://github.com/Mihalis-Koutouvos/DS4300_Practical_2_LLM_Analysis.git
+  ```
 
 2. Run ingest file to create database:
   ```bash
