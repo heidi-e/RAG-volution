@@ -16,7 +16,6 @@ qdrant_client = QdrantClient("localhost", port=6333)  # Adjust as per your setup
 
 # Qdrant Collection Name and Vector Dimension
 COLLECTION_NAME = "pdf_embeddings"
-#VECTOR_DIM = 3072  # Should match the embedding dimensions
 
 # Create the Qdrant collection
 def create_qdrant_collection(VECTOR_DIM):
@@ -36,6 +35,7 @@ def create_qdrant_collection(VECTOR_DIM):
     print("Qdrant collection created successfully.")
 
 
+# measure metrics including time and memory usage
 def log_qdrant_performance(start_time, memory_usage, end_time):
     total_time = end_time - start_time
     highest_memory_usage = max(memory_usage)
@@ -64,7 +64,7 @@ def store_embedding(file: str, page: str, chunk: str, embedding: list):
         collection_name=COLLECTION_NAME,
         points=points
     )
-    #print(f"Stored embedding for: {chunk}")
+    
 
 # Extract text from a PDF file
 def extract_text_from_pdf(pdf_path):
@@ -108,6 +108,7 @@ def process_pdfs(data_dir, model_choice, chunk_size, overlap):
 
 
 def main():
+    # user input of embedding model choice
     model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
     "\nEnter the embedding model choice:"))
     
@@ -121,23 +122,18 @@ def main():
         print("Using Ollama for embeddings.")
         VECTOR_DIM = 1024
 
-    # Determine chunk size and overlap
-    chunk_size = int(input("\n* Chunk size:"))
-    overlap = int(input("\n* Overlap:"))
+    # define chunk size and overlap
+    chunk_size = int(input("\n* Chunk size: "))
+    overlap = int(input("* Overlap: "))
 
     # create qdrant db
     create_qdrant_collection(VECTOR_DIM)
 
-    # process documents and collect metrics
+    # ingest files into qdrant db
     start_time = time.time()
     memory_data = memory_usage((process_pdfs, ('data/unprocessed_pdfs', model_choice, chunk_size, overlap), {}), interval=0.1)
     end_time = time.time()
     log_qdrant_performance(start_time, memory_data, end_time)
-    
-
-
-    #process_pdfs('data/unprocessed_pdfs', model_choice)
-    
 
 
     print("\n---Done processing PDFs---\n")

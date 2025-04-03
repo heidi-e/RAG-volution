@@ -42,12 +42,7 @@ def create_hnsw_index():
     print("Index created successfully.")
 
 
-# Generate an embedding using nomic-embed-text
-"""def get_embedding(text: str, model: str = "nomic-embed-text") -> list:
-
-    response = ollama.embeddings(model="llama3.2", prompt=text)
-    return response["embedding"]"""
-
+# Generate an embedding based on user input
 def encode_text(info, model_choice):
     return get_embedding(info, model_choice)
 
@@ -80,7 +75,7 @@ def extract_text_from_pdf(pdf_path):
 
 
 # split the text into chunks with overlap
-def split_text_into_chunks(text, chunk_size=200, overlap=0):
+def split_text_into_chunks(text, chunk_size, overlap):
     """Split text into chunks of approximately chunk_size words with overlap."""
     words = text.split()
     chunks = []
@@ -91,14 +86,14 @@ def split_text_into_chunks(text, chunk_size=200, overlap=0):
 
 
 # Process all PDF files in a given directory
-def process_pdfs(data_dir, model_choice):
+def process_pdfs(data_dir, model_choice, chunk_size, overlap):
 
     for file_name in os.listdir(data_dir):
         if file_name.endswith(".pdf"):
             pdf_path = os.path.join(data_dir, file_name)
             text_by_page = extract_text_from_pdf(pdf_path)
             for page_num, text in text_by_page:
-                chunks = split_text_into_chunks(text)
+                chunks = split_text_into_chunks(text, chunk_size, overlap)
                 # print(f"  Chunks: {chunks}")
                 for chunk_index, chunk in enumerate(chunks):
                     # embedding = calculate_embedding(chunk)
@@ -113,46 +108,34 @@ def process_pdfs(data_dir, model_choice):
             print(f" -----> Processed {file_name}")
 
 
-def query_redis(query_text: str, model_choice):
-    q = (
-        Query("*=>[KNN 5 @embedding $vec AS vector_distance]")
-        .sort_by("vector_distance")
-        .return_fields("id", "vector_distance")
-        .dialect(2)
-    )
-    query_text = "Efficient search in vector databases"
-    embedding = get_embedding(query_text, model_choice)
-    res = redis_client.ft(INDEX_NAME).search(
-        q, query_params={"vec": np.array(embedding, dtype=np.float32).tobytes()}
-    )
-    # print(res.docs)
-
-    for doc in res.docs:
-        print(f"{doc.id} \n ----> {doc.vector_distance}\n")
-
 
 def main():
 
     clear_redis_store()
     create_hnsw_index()
 
+    # get user input of embedding model
     model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
-    "\nEnter the embedding model choice:"))
+    "\nEnter the embedding model choice: "))
     
     if model_choice == 1:
         print("Using SentenceTransformer for embeddings.")
-        VECTOR_DIM = 384
+        
     elif model_choice == 2:
         print("Using SentenceTransformer for embeddings.")
-        VECTOR_DIM = 768
+        
     elif model_choice == 3:
         print("Using Ollama for embeddings.")
-        VECTOR_DIM = 3072
+        
+    # define chunk size and overlap
+    chunk_size = int(input("\n* Chunk size: "))
+    overlap = int(input("* Overlap: "))
 
+    # ingest files into redis db
     path = 'data/unprocessed_pdfs'
-    process_pdfs(path, model_choice)
+    process_pdfs(path, model_choice, chunk_size, overlap)
     print("\n---Done processing PDFs---\n")
-    #query_redis("What is the capital of France?")
+    
 
 
 if __name__ == "__main__":

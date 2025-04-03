@@ -6,17 +6,13 @@ from memory_profiler import memory_usage
 from src.embedding_model import get_embedding
 
 
-#Decide on the model to use:
-#embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-
-
-#Create an embedding for a query:
+# create an embedding based on user input
 def encode_text(info, model_choice):
 
     return get_embedding(info, model_choice)
 
-#Create the Chroma client; need PersistentClient and not Client because we do not want
-#data disappearing
+# create the Chroma client; need PersistentClient and not Client because we do not want
+# data disappearing
 def create_chroma_client(path="./chroma_db"):
     client = chromadb.PersistentClient(path=path)
     try:
@@ -31,6 +27,7 @@ def create_chroma_client(path="./chroma_db"):
 #Create collection to index; pulling from existing preprocesed data
 stored_collection = chroma_client.get_or_create_collection(name="ds4300_course_notes")"""
 
+# compute time and memory usage of db
 def log_chroma_performance(start_time, memory_usage, end_time):
     total_time = end_time - start_time
     highest_memory_usage = max(memory_usage)
@@ -39,31 +36,32 @@ def log_chroma_performance(start_time, memory_usage, end_time):
     print(f"Peak Memory Usage: {highest_memory_usage:.2f} MB")
 
 
-#Going to obtain embeddings, create ids for them, and proceed to store them
+# obtain embeddings, create ids for them, and proceed to store them
 def store_embedding(info, chunk_size, model_choice):
     information = encode_text(info, model_choice)
     stored_collection = create_chroma_client()
 
-    #Create an id and then add it to the stored collection. Also handle duplicates:
+    # create an id and then add it to the stored collection, also handle duplicates
     id_gen = str(hash(info))
     current_docs = stored_collection.get(ids=[id_gen])
-    #Now apply check:
+    # now apply check
     if current_docs and len(current_docs["documents"]) > 0:
         print("Skipping already-made ids")
         return 
 
-    #Store in the db
+    # store in the db
     stored_collection.add(documents=[info], embeddings=[information], ids=[id_gen], metadatas=[{"chunk_size": chunk_size}])
     print(f'Values have been stored: {info[:50]}')
     print(f'Stored values: (size {chunk_size}): {info[:50]}')
 
+# process documents based on chunking size and overlap
 def process_docs(data, model_choice, target_chunk_size, target_overlap):
     for i in data["processed_pdfs"]:
         title = i.get("title", "Unknown Title")
         print(f'Title processing: {title}')
         for key, chunked_material in i.get("chunked_content", {}).items():
             
-            # Example key format: "200_words_overlap_50"
+            # obtain key of chunked text
             try:
                 parts = key.split("_")
                 chunk_size = int(parts[0])
@@ -78,19 +76,19 @@ def process_docs(data, model_choice, target_chunk_size, target_overlap):
             
 
             
-#Pull from json database:
+# pull from json database
 def pull_from_json(path, model_choice):
 
     try: 
 
-        #Open and process the data
+        # open and process the data
         with open(path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
 
-        # Determine chunk size and overlap
-        chunk_size = int(input("\n* Chunk size:"))
-        overlap = int(input("\n* Overlap:"))
+        # determine chunk size and overlap
+        chunk_size = int(input("\n* Chunk size: "))
+        overlap = int(input("* Overlap: "))
 
         start_time = time.time()
         memory_data = memory_usage((process_docs, (data, model_choice, chunk_size, overlap), {}), interval=0.1)

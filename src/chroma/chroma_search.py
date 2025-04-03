@@ -12,35 +12,35 @@ chroma_client = chromadb.PersistentClient(path="./chroma_db")
 stored_collection = chroma_client.get_or_create_collection(name="ds4300_course_notes")
 
 
-#Create an embedding for a query:
+# create an embedding for a query
 def encode_text(info, model_choice):
     response = get_embedding(info, model_choice)
 
     return response
 
 
-#Begin searching the embeddings
+# begin searching the embeddings
 def search_embeddings(query, model_choice, top_k=3, chunk_size=None, overlap=None):
     start_time = time.time() 
 
-    #Encode
+    # encode
     encode_query = encode_text(query, model_choice)
 
-    # Build metadata filter if specified
+    # build metadata filter if specified
     filter_conditions = {}
     if chunk_size is not None:
         filter_conditions["chunk_size"] = chunk_size
     if overlap is not None:
         filter_conditions["overlap"] = overlap
     
-    #Results will be stored:
+    # store results
     query_results = stored_collection.query(query_embeddings=[encode_query], n_results=top_k, where=filter_conditions if filter_conditions else None)
 
-    #Answer to if there are no answers to the query:
+    # answer to if there are no answers to the query
     if not query_results or "documents" not in query_results or not query_results["documents"]:
         return []
 
-    #Get documents and necessary metadata (similar process as redis)
+    # get documents and necessary metadata (similar process as redis)
     obtained_documents = query_results["documents"][0]
     obtained_meta = query_results.get("metadatas", [[]])
 
@@ -54,17 +54,13 @@ def search_embeddings(query, model_choice, top_k=3, chunk_size=None, overlap=Non
 
    
 
-    #print(f'Obtained meta: {obtained_meta} (type: {type(obtained_meta)})')
-
-
     for i, pdf in enumerate(obtained_documents):
         
         chunk_size = obtained_meta[i].get("chunk_size", "Unknown Size") if i < len(obtained_meta) and isinstance(obtained_meta[i], dict) else "Unknown Size"
-        #print(f'{i+1}. (Chunk Size: {chunk_size}) {pdf}')
 
 
     end_time = time.time()  # End timing
-    print(f"🔹 Embedding search time: {end_time - start_time:.4f} seconds")
+    print(f"Embedding search time: {end_time - start_time:.4f} seconds")
 
     return obtained_documents
 
@@ -76,14 +72,13 @@ def search_embeddings(query, model_choice, top_k=3, chunk_size=None, overlap=Non
 
 def generate_rag_response(query, context_results, llm_choice):
     start_time = time.time() 
-    # Prepare context string
+    # prepare context string
     context_str = "\n".join(
         [
             f"Chunk {i+1}: {query_result}" for i, query_result, in enumerate(context_results)
         ]
     )
 
-    #print(f"context_str: {context_str}")
 
     # Construct prompt with context
     prompt = f"""You are a helpful AI assistant. 
@@ -117,21 +112,20 @@ Answer:"""
 
 
 
-#Used to set up the conversation between user and AI
+# used to set up the conversation between user and AI
 def interactive_search(model_choice, llm_choice, chunk_size, overlap):
     print("🔍 RAG Search Interface")
     print("Type 'exit' to quit")
     while True:
         query = input("\nEnter your search query: ")
 
-        #Exit case:
+        #exit case
         if query.lower() == 'exit':
             break
 
-        #Otherwise, generate the RAG response:
+        # otherwise, generate the RAG response
         # Search for relevant embeddings
 
-        
         context_results = search_embeddings(query, model_choice, chunk_size, overlap)
 
         # Generate RAG response
@@ -141,15 +135,17 @@ def interactive_search(model_choice, llm_choice, chunk_size, overlap):
         print(rag_response)
 
 def main():
+    # user input of embedding model
     model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
     "\nEnter the embedding model choice (make sure its consistent with ingest.py): "))
 
+    # user input of llm model
     llm_choice = int(input("\n* 1 for Ollama\n* 2 for Mistral"
     "\nEnter the LLM model choice: "))
 
-    # Determine chunk size and overlap
-    chunk_size = int(input("\n* Chunk size:"))
-    overlap = int(input("\n* Overlap:"))
+    # determine chunk size and overlap
+    chunk_size = int(input("\n* Chunk size: "))
+    overlap = int(input("* Overlap: "))
 
     interactive_search(model_choice, llm_choice, chunk_size, overlap)
 

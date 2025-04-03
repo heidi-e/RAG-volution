@@ -14,13 +14,12 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*search.*")
 
 
-
 # Initialize Qdrant client
 qdrant_client = QdrantClient(host="localhost", port=6333)
 
 # Qdrant Collection Name and Vector Dimension
 COLLECTION_NAME = "pdf_embeddings"
-#VECTOR_DIM = VECTOR_DIM = 3072  # Should match the embedding dimensions
+#VECTOR_DIM = 3072  # Should match the embedding dimensions
 
 
 # Function to search embeddings in Qdrant
@@ -125,9 +124,11 @@ def interactive_search(model_choice, llm_choice):
 
 # Main entry
 if __name__ == "__main__":
+    # user input of embedding model
     model_choice = int(input("\n* 1 for SentenceTransformer MiniLM-L6-v2\n* 2 for SentenceTransformer mpnet-base-v2\n* 3 for mxbai-embed-large"
     "\nEnter the embedding model choice (make sure its consistent with ingest.py): "))
 
+    # user input of llm model
     llm_choice = int(input("\n* 1 for Ollama\n* 2 for Mistral"
     "\nEnter the LLM model choice: "))
 
