@@ -2,6 +2,7 @@
 numpy
 fitz  # Alias; this actually requires PyMuPDF
 PyMuPDF
+nltk     # for stopwords and other NLP tools
 
 # Redis (with vector search support)
 redis>=4.5.5
