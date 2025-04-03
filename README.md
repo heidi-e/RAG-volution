@@ -49,22 +49,28 @@ To run the Redis server and other dependencies, you must install Docker:
 1. Pull the Qdrant Docker image
 2. Start a Qdrant container and expose it on port 6333
 
-## How to Run  
+## How to Run
 1. Clone the repository:  
   ```bash
   git clone https://github.com/Mihalis-Koutouvos/DS4300_Practical_2_LLM_Analysis.git
   ```
 
-2. Run ingest file to create database:
+2. Install required packages and libaries
+  ```bash
+  pip install -r src/requirements.txt
+  ```
+
+3. Run ingest file to create database:
   ```bash
   python3 -m src.{db_folder_name}.{db_name}_ingest
   ```
 
-3. Run search file to generate RAG response:
+4. Run search file to generate RAG response:
   ```bash
   python3 -m src.{db_folder_name}.{db_name}_search
   ```
-4. To run the last embedding model ('mxbai-embed-large'), make sure to pull model with Ollama.
+
+5. To run the last embedding model ('mxbai-embed-large'), make sure to pull model with Ollama.
 ```bash
 ollama pull mxbai-embed-large
 ```
